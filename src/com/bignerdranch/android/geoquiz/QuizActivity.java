@@ -1,5 +1,6 @@
 package com.bignerdranch.android.geoquiz;
 
+import android.content.*;
 import android.os.*;
 import android.support.v4.app.*;
 import android.support.v7.app.*;
@@ -12,12 +13,15 @@ public class QuizActivity extends ActionBarActivity {
 	
 	private Button mTrueButton;
 	private Button mFalseButton;
+	private Button mCheatButton;
 	private ImageButton mNextButton;
 	private ImageButton mPrevButton;
 	private TextView mQuestionTextView;
+	private boolean mIsCheater;
 	
 	private static final String TAG = "QuizActivity";
 	private static final String KEY_INDEX = "index";
+	private static final String CHEAT_RESULT = "cheat_result";
 	
 	private TrueFalse[] mQuestionBank = new TrueFalse[] {
 			new TrueFalse(R.string.question_oceans, true),
@@ -41,13 +45,20 @@ public class QuizActivity extends ActionBarActivity {
 		
 		int messageResId = 0;
 		
-		if (userPressedTrue == answerIsTrue)
+		if (mIsCheater)
 		{
-			messageResId = R.string.correct_toast;
+			messageResId = R.string.judgement_toast;
 		} // end if
 		else
 		{
-			messageResId = R.string.incorrect_toast;
+			if (userPressedTrue == answerIsTrue)
+			{
+				messageResId = R.string.correct_toast;
+			} // end if
+			else
+			{
+				messageResId = R.string.incorrect_toast;
+			} // end else
 		} // end else
 		
 		Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
@@ -90,6 +101,19 @@ public class QuizActivity extends ActionBarActivity {
 			}
 		});
 		
+		mCheatButton = (Button)findViewById(R.id.cheat_button);
+		mCheatButton.setOnClickListener(new OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				Intent i = new Intent(QuizActivity.this, CheatActivity.class);
+				boolean answerIsTrue = mQuestionBank[mCurrentIndex].isTrueQuestion();
+				i.putExtra(CheatActivity.EXTRA_ANSWER_IS_TRUE, answerIsTrue);
+				startActivityForResult(i, 0);
+			}
+		});
+		
 		mPrevButton = (ImageButton)findViewById(R.id.prev_button);
 		mPrevButton.setOnClickListener(new OnClickListener()
 		{
@@ -115,6 +139,7 @@ public class QuizActivity extends ActionBarActivity {
 			public void onClick(View v)
 			{
 				mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+				mIsCheater = false;
 				updateQuestion();
 			}
 		});
@@ -122,6 +147,7 @@ public class QuizActivity extends ActionBarActivity {
 		if (savedInstanceState != null)
 		{
 			mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
+			mIsCheater = savedInstanceState.getBoolean(CHEAT_RESULT);
 		}
 		
 		updateQuestion();
@@ -133,6 +159,7 @@ public class QuizActivity extends ActionBarActivity {
 		super.onSaveInstanceState(savedInstanceState);
 		Log.i(TAG, "onSaveInstanceState");
 		savedInstanceState.putInt(KEY_INDEX, mCurrentIndex);
+		savedInstanceState.putBoolean(CHEAT_RESULT, mIsCheater);
 	}
 	
 	@Override
@@ -188,6 +215,16 @@ public class QuizActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data)
+	{
+		if (data == null)
+		{
+			return;
+		}
+		mIsCheater = data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOWN, false);
 	}
 
 	/**
