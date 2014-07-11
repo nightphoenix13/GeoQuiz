@@ -1,5 +1,6 @@
 package com.bignerdranch.android.geoquiz;
 
+import android.annotation.*;
 import android.content.*;
 import android.os.*;
 import android.support.v4.app.*;
@@ -17,6 +18,7 @@ public class QuizActivity extends ActionBarActivity {
 	private ImageButton mNextButton;
 	private ImageButton mPrevButton;
 	private TextView mQuestionTextView;
+	private TextView mApiTextView;
 	private boolean mIsCheater;
 	
 	private static final String TAG = "QuizActivity";
@@ -64,11 +66,21 @@ public class QuizActivity extends ActionBarActivity {
 		Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
 	}
 
+	@TargetApi(11)
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate(Bundle) called");
 		setContentView(R.layout.activity_quiz);
+		
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+		{
+			android.app.ActionBar actionBar = getActionBar();
+			actionBar.setSubtitle("Bodies of Water");
+		} // end if
+		
+		mApiTextView = (TextView)findViewById(R.id.api_text_view);
+		mApiTextView.setText("API level " + Build.VERSION.SDK_INT);
 		
 		mQuestionTextView = (TextView)findViewById(R.id.question_text_view);
 		mQuestionTextView.setOnClickListener(new OnClickListener()
@@ -225,23 +237,6 @@ public class QuizActivity extends ActionBarActivity {
 			return;
 		}
 		mIsCheater = data.getBooleanExtra(CheatActivity.EXTRA_ANSWER_SHOWN, false);
-	}
-
-	/**
-	 * A placeholder fragment containing a simple view.
-	 */
-	public static class PlaceholderFragment extends Fragment {
-
-		public PlaceholderFragment() {
-		}
-
-		@Override
-		public View onCreateView(LayoutInflater inflater, ViewGroup container,
-				Bundle savedInstanceState) {
-			View rootView = inflater.inflate(R.layout.fragment_quiz, container,
-					false);
-			return rootView;
-		}
 	}
 
 }
